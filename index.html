@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAFбанк - WebApp</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --success: #00b894;
+            --danger: #d63031;
+        }
+        
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            background: white;
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 15px 15px;
+            margin-bottom: 20px;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+        }
+        
+        .balance-amount {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a4dcf;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            color: var(--dark);
+        }
+        
+        .transaction {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .transaction-in {
+            border-left: 4px solid var(--success);
+        }
+        
+        .transaction-out {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .transaction-amount {
+            font-weight: bold;
+        }
+        
+        .transaction-in .transaction-amount {
+            color: var(--success);
+        }
+        
+        .transaction-out .transaction-amount {
+            color: var(--danger);
+        }
+        
+        .transaction-details {
+            flex-grow: 1;
+            margin-left: 15px;
+        }
+        
+        .transaction-name {
+            font-weight: 500;
+        }
+        
+        .transaction-date {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .loader {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RAFбанк</h1>
+            <p>Ваш мобильный банк в Telegram</p>
+        </header>
+        
+        <div class="balance-card">
+            <div>Ваш баланс</div>
+            <div class="balance-amount" id="balance">— Д</div>
+            <div id="user-name">Загрузка...</div>
+        </div>
+        
+        <button class="btn btn-primary" id="send-money-btn">Перевести деньги</button>
+        <button class="btn btn-secondary" id="refresh-btn">Обновить данные</button>
+        
+        <div class="section-title">Последние операции</div>
+        <div id="transactions-container">
+            <div class="loader">Загрузка истории...</div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Элементы интерфейса
+        const balanceElement = document.getElementById('balance');
+        const userNameElement = document.getElementById('user-name');
+        const transactionsContainer = document.getElementById('transactions-container');
+        const sendMoneyBtn = document.getElementById('send-money-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        
+        // Параметры пользователя
+        let userId = tg.initDataUnsafe.user?.id;
+        let userFirstName = tg.initDataUnsafe.user?.first_name;
+        
+        // Отображаем имя пользователя
+        if (userFirstName) {
+            userNameElement.textContent = userFirstName;
+        }
+        
+        // Загрузка данных
+        function loadData() {
+            if (!userId) {
+                balanceElement.textContent = "Ошибка авторизации";
+                return;
+            }
+            
+            // Показываем загрузку
+            transactionsContainer.innerHTML = '<div class="loader">Загрузка истории...</div>';
+            
+            // Имитация запроса к API (в реальности нужно подключить ваш бэкенд)
+            setTimeout(() => {
+                // Пример данных (замените на реальные запросы к вашему API)
+                const mockData = {
+                    balance: 1250,
+                    transactions: [
+                        {
+                            id: "1",
+                            amount: 150,
+                            name: "Иван Иванов",
+                            date: "2023-05-15T14:30:00",
+                            type: "in"
+                        },
+                        {
+                            id: "2",
+                            amount: 300,
+                            name: "Петр Петров",
+                            date: "2023-05-14T10:15:00",
+                            type: "out"
+                        },
+                        {
+                            id: "3",
+                            amount: 200,
+                            name: "Сергей Сергеев",
+                            date: "2023-05-12T18:45:00",
+                            type: "in"
+                        }
+                    ]
+                };
+                
+                // Обновляем баланс
+                balanceElement.textContent = `${mockData.balance} Д`;
+                
+                // Отображаем транзакции
+                if (mockData.transactions.length > 0) {
+                    let transactionsHtml = '';
+                    mockData.transactions.forEach(t => {
+                        transactionsHtml += `
+                            <div class="transaction transaction-${t.type}">
+                                <div class="transaction-details">
+                                    <div class="transaction-name">${t.name}</div>
+                                    <div class="transaction-date">${new Date(t.date).toLocaleString()}</div>
+                                </div>
+                                <div class="transaction-amount">${t.type === 'in' ? '+' : '-'}${t.amount} Д</div>
+                            </div>
+                        `;
+                    });
+                    transactionsContainer.innerHTML = transactionsHtml;
+                } else {
+                    transactionsContainer.innerHTML = '<div class="loader">Нет операций</div>';
+                }
+            }, 800);
+        }
+        
+        // Кнопка перевода
+        sendMoneyBtn.addEventListener('click', () => {
+            tg.showPopup({
+                title: "Перевод денег",
+                message: "Для перевода используйте основное меню бота",
+                buttons: [{ type: "close" }]
+            }, () => {
+                tg.sendData(JSON.stringify({
+                    action: "open_transfer"
+                }));
+            });
+        });
+        
+        // Кнопка обновления
+        refreshBtn.addEventListener('click', loadData);
+        
+        // Закрытие WebApp
+        function setupCloseButton() {
+            if (tg.platform !== "unknown") {
+                tg.MainButton.setText("Закрыть").show().onClick(() => {
+                    tg.close();
+                });
+            }
+        }
+        
+        // Инициализация
+        setupCloseButton();
+        loadData();
+        
+        // Обработка данных от бота
+        tg.onEvent('webAppDataReceived', (event) => {
+            const data = JSON.parse(event);
+            if (data.balance) {
+                balanceElement.textContent = `${data.balance} Д`;
+            }
+        });
+    </script>
+</body>
+</html>
